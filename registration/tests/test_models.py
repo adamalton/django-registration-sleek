@@ -8,10 +8,12 @@ from django.core import mail
 from django.core import management
 from django.test import TestCase
 from django.utils.hashcompat import sha_constructor
+from django.test.utils import override_settings
 
 from registration.models import RegistrationProfile
 
 
+@override_settings(ACCOUNT_ACTIVATION_DAYS=7)
 class RegistrationModelTests(TestCase):
     """
     Test the model and manager used in the default backend.
@@ -20,13 +22,6 @@ class RegistrationModelTests(TestCase):
     user_info = {'username': 'alice',
                  'password': 'swordfish',
                  'email': 'alice@example.com'}
-
-    def setUp(self):
-        self.old_activation = getattr(settings, 'ACCOUNT_ACTIVATION_DAYS', None)
-        settings.ACCOUNT_ACTIVATION_DAYS = 7
-
-    def tearDown(self):
-        settings.ACCOUNT_ACTIVATION_DAYS = self.old_activation
 
     def test_profile_creation(self):
         """

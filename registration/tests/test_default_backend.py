@@ -6,11 +6,13 @@ from django.contrib.sites.models import Site
 from django.core import mail
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+from django.test.utils import override_settings
 
 from registration.forms import RegistrationForm
 from registration.models import RegistrationProfile
 
 
+@override_settings(ACCOUNT_ACTIVATION_DAYS=7)
 class DefaultBackendViewTests(TestCase):
     """
     Test the default registration backend.
@@ -23,52 +25,29 @@ class DefaultBackendViewTests(TestCase):
     """
     urls = 'registration.backends.default.urls'
 
-    def setUp(self):
-        """
-        Create an instance of the default backend for use in testing,
-        and set ``ACCOUNT_ACTIVATION_DAYS`` if it's not set already.
-
-        """
-        self.old_activation = getattr(settings, 'ACCOUNT_ACTIVATION_DAYS', None)
-        if self.old_activation is None:
-            settings.ACCOUNT_ACTIVATION_DAYS = 7 # pragma: no cover
-
-    def tearDown(self):
-        """
-        Yank ``ACCOUNT_ACTIVATION_DAYS`` back out if it wasn't
-        originally set.
-
-        """
-        if self.old_activation is None:
-            settings.ACCOUNT_ACTIVATION_DAYS = self.old_activation # pragma: no cover
-
     def test_allow(self):
         """
         The setting ``REGISTRATION_OPEN`` appropriately controls
         whether registration is permitted.
 
         """
-        old_allowed = getattr(settings, 'REGISTRATION_OPEN', True)
-        settings.REGISTRATION_OPEN = True
+        with override_settings(REGISTRATION_OPEN=True):
+            resp = self.client.get(reverse('registration_register'))
+            self.assertEqual(200, resp.status_code)
 
-        resp = self.client.get(reverse('registration_register'))
-        self.assertEqual(200, resp.status_code)
+        with override_settings(REGISTRATION_OPEN=False):
+            # Now all attempts to hit the register view should redirect to
+            # the 'registration is closed' message.
+            resp = self.client.get(reverse('registration_register'))
+            self.assertRedirects(resp, reverse('registration_disallowed'))
 
-        settings.REGISTRATION_OPEN = False
+            resp = self.client.post(reverse('registration_register'),
+                                    data={'username': 'bob',
+                                          'email': 'bob@example.com',
+                                          'password1': 'secret',
+                                          'password2': 'secret'})
+            self.assertRedirects(resp, reverse('registration_disallowed'))
 
-        # Now all attempts to hit the register view should redirect to
-        # the 'registration is closed' message.
-        resp = self.client.get(reverse('registration_register'))
-        self.assertRedirects(resp, reverse('registration_disallowed'))
-
-        resp = self.client.post(reverse('registration_register'),
-                                data={'username': 'bob',
-                                      'email': 'bob@example.com',
-                                      'password1': 'secret',
-                                      'password2': 'secret'})
-        self.assertRedirects(resp, reverse('registration_disallowed'))
-
-        settings.REGISTRATION_OPEN = old_allowed
 
     def test_registration_get(self):
         """

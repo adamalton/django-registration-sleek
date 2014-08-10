@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+from django.test.utils import override_settings
 
 from registration.forms import RegistrationForm
 
@@ -15,27 +16,22 @@ class SimpleBackendViewTests(TestCase):
         whether registration is permitted.
 
         """
-        old_allowed = getattr(settings, 'REGISTRATION_OPEN', True)
-        settings.REGISTRATION_OPEN = True
+        with override_settings(REGISTRATION_OPEN=True):
+            resp = self.client.get(reverse('registration_register'))
+            self.assertEqual(200, resp.status_code)
 
-        resp = self.client.get(reverse('registration_register'))
-        self.assertEqual(200, resp.status_code)
+        with override_settings(REGISTRATION_OPEN=False):
+            # Now all attempts to hit the register view should redirect to
+            # the 'registration is closed' message.
+            resp = self.client.get(reverse('registration_register'))
+            self.assertRedirects(resp, reverse('registration_disallowed'))
 
-        settings.REGISTRATION_OPEN = False
-
-        # Now all attempts to hit the register view should redirect to
-        # the 'registration is closed' message.
-        resp = self.client.get(reverse('registration_register'))
-        self.assertRedirects(resp, reverse('registration_disallowed'))
-
-        resp = self.client.post(reverse('registration_register'),
-                                data={'username': 'bob',
-                                      'email': 'bob@example.com',
-                                      'password1': 'secret',
-                                      'password2': 'secret'})
-        self.assertRedirects(resp, reverse('registration_disallowed'))
-
-        settings.REGISTRATION_OPEN = old_allowed
+            resp = self.client.post(reverse('registration_register'),
+                                    data={'username': 'bob',
+                                          'email': 'bob@example.com',
+                                          'password1': 'secret',
+                                          'password2': 'secret'})
+            self.assertRedirects(resp, reverse('registration_disallowed'))
 
     def test_registration_get(self):
         """
