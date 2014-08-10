@@ -4,7 +4,6 @@ import random
 import re
 
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.db import models
 from django.db import transaction
 from django.template.loader import render_to_string
@@ -13,9 +12,13 @@ from django.utils.translation import ugettext_lazy as _
 
 try:
     from django.contrib.auth import get_user_model
-    User = get_user_model()
+    AUTH_USER_MODEL = settings.AUTH_USER_MODEL
 except ImportError:
+    # Django <= 1.5 backwards compatibility
     from django.contrib.auth.models import User
+    get_user_model = lambda: User
+    AUTH_USER_MODEL = 'auth.User'
+
 
 try:
     from django.utils.timezone import now as datetime_now
@@ -82,7 +85,7 @@ class RegistrationManager(models.Manager):
         user. To disable this, pass ``send_email=False``.
 
         """
-        new_user = User.objects.create_user(username, email, password)
+        new_user = get_user_model().objects.create_user(username, email, password)
         new_user.is_active = False
         new_user.save()
 
@@ -152,6 +155,7 @@ class RegistrationManager(models.Manager):
         be deleted.
 
         """
+        User = get_user_model()
         for profile in self.all():
             try:
                 if profile.activation_key_expired():
@@ -180,7 +184,9 @@ class RegistrationProfile(models.Model):
     """
     ACTIVATED = u"ALREADY_ACTIVATED"
 
-    user = models.ForeignKey(User, unique=True, verbose_name=_('user'))
+    user = models.ForeignKey(
+        AUTH_USER_MODEL, unique=True, verbose_name=_('user')
+    )
     activation_key = models.CharField(_('activation key'), max_length=40)
 
     objects = RegistrationManager()
