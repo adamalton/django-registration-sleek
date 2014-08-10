@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db import transaction
 from django.template.loader import render_to_string
+from django.template import TemplateDoesNotExist
 from django.utils.translation import ugettext_lazy as _
 
 try:
@@ -223,17 +224,21 @@ class RegistrationProfile(models.Model):
         Send an activation email to the user associated with this
         ``RegistrationProfile``.
 
-        The activation email will make use of two templates:
+        The activation email will make use of up to three templates:
 
-        ``registration/activation_email_subject.txt``
+        ``registration/activation_email_subject.txt`` (required)
             This template will be used for the subject line of the
             email. Because it is used as the subject line of an email,
             this template's output **must** be only a single line of
             text; output longer than one line will be forcibly joined
             into only a single line.
 
-        ``registration/activation_email.txt``
+        ``registration/activation_email.txt`` (required)
             This template will be used for the body of the email.
+
+        ``registration/activation_email.html`` (optional)
+            This template will be used for the body of the HTML counterpart
+            of the email.
 
         These templates will each receive the following context
         variables:
@@ -267,5 +272,16 @@ class RegistrationProfile(models.Model):
         message = render_to_string('registration/activation_email.txt',
                                    ctx_dict)
 
-        self.user.email_user(subject, message, settings.DEFAULT_FROM_EMAIL)
+        # Include the HTML counterpart to the email, if the template exists
+        kwargs = {}
+        try:
+            kwargs['html_message'] = render_to_string(
+                'registration/activation_email.html'
+            )
+        except TemplateDoesNotExist:
+            pass
+
+        self.user.email_user(
+            subject, message, settings.DEFAULT_FROM_EMAIL, **kwargs
+        )
 
