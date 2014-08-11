@@ -1,5 +1,6 @@
 import datetime
 import re
+from unittest import skipIf
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -18,6 +19,7 @@ from registration.tests.utils import TESTS_TEMPLATE_DIRS
 
 @override_settings(ACCOUNT_ACTIVATION_DAYS=7)
 @override_settings(TEMPLATE_DIRS=TESTS_TEMPLATE_DIRS)
+@skipIf('django.contrib.sites' not in settings.INSTALLED_APPS, "requires django.contrib.sites")
 class RegistrationModelTests(TestCase):
     """
     Test the model and manager used in the default backend.
