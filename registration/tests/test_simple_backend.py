@@ -5,8 +5,10 @@ from django.test import TestCase
 from django.test.utils import override_settings
 
 from registration.forms import RegistrationForm
+from registration.tests.utils import TESTS_TEMPLATE_DIRS
 
 
+@override_settings(TEMPLATE_DIRS=TESTS_TEMPLATE_DIRS)
 class SimpleBackendViewTests(TestCase):
     urls = 'registration.backends.simple.urls'
 

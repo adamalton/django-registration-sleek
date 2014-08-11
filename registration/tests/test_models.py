@@ -11,9 +11,12 @@ from django.utils.hashcompat import sha_constructor
 from django.test.utils import override_settings
 
 from registration.models import RegistrationProfile
+from registration.tests.utils import TESTS_TEMPLATE_DIRS
+
 
 
 @override_settings(ACCOUNT_ACTIVATION_DAYS=7)
+@override_settings(TEMPLATE_DIRS=TESTS_TEMPLATE_DIRS)
 class RegistrationModelTests(TestCase):
     """
     Test the model and manager used in the default backend.

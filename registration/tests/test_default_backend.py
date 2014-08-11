@@ -10,8 +10,10 @@ from django.test.utils import override_settings
 
 from registration.forms import RegistrationForm
 from registration.models import RegistrationProfile
+from registration.tests.utils import TESTS_TEMPLATE_DIRS
 
 
+@override_settings(TEMPLATE_DIRS=TESTS_TEMPLATE_DIRS)
 @override_settings(ACCOUNT_ACTIVATION_DAYS=7)
 class DefaultBackendViewTests(TestCase):
     """
