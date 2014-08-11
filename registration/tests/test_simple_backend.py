@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.auth.tests.utils import skipIfCustomUser
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.utils import override_settings
@@ -48,6 +49,7 @@ class SimpleBackendViewTests(TestCase):
         self.failUnless(isinstance(resp.context['form'],
                         RegistrationForm))
 
+    @skipIfCustomUser
     def test_registration(self):
         """
         Registration creates a new account and logs the user in.
@@ -73,6 +75,7 @@ class SimpleBackendViewTests(TestCase):
         resp = self.client.get(reverse('registration_register'))
         self.failUnless(resp.context['user'].is_authenticated())
 
+    @skipIfCustomUser
     def test_registration_failure(self):
         """
         Registering with invalid data fails.

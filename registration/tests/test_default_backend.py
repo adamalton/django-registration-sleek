@@ -3,6 +3,7 @@ import datetime
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
+from django.contrib.auth.tests.utils import skipIfCustomUser
 from django.core import mail
 from django.core.urlresolvers import reverse
 from django.test import TestCase
@@ -64,6 +65,7 @@ class DefaultBackendViewTests(TestCase):
         self.failUnless(isinstance(resp.context['form'],
                         RegistrationForm))
 
+    @skipIfCustomUser
     def test_registration(self):
         """
         Registration creates a new inactive account and a new profile
@@ -91,6 +93,7 @@ class DefaultBackendViewTests(TestCase):
         self.assertEqual(RegistrationProfile.objects.count(), 1)
         self.assertEqual(len(mail.outbox), 1)
 
+    @skipIfCustomUser
     def test_registration_no_sites(self):
         """
         Registration still functions properly when
@@ -119,6 +122,7 @@ class DefaultBackendViewTests(TestCase):
 
         Site._meta.installed = True
 
+    @skipIfCustomUser
     def test_registration_failure(self):
         """
         Registering with invalid data fails.
@@ -133,6 +137,7 @@ class DefaultBackendViewTests(TestCase):
         self.failIf(resp.context['form'].is_valid())
         self.assertEqual(0, len(mail.outbox))
 
+    @skipIfCustomUser
     def test_activation(self):
         """
         Activation of an account functions properly.
@@ -151,6 +156,7 @@ class DefaultBackendViewTests(TestCase):
                                        kwargs={'activation_key': profile.activation_key}))
         self.assertRedirects(resp, reverse('registration_activation_complete'))
 
+    @skipIfCustomUser
     def test_activation_expired(self):
         """
         An expired account can't be activated.

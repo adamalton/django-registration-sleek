@@ -3,6 +3,7 @@ import re
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.auth.tests.utils import skipIfCustomUser
 from django.contrib.sites.models import Site
 from django.core import mail
 from django.core import management
@@ -26,6 +27,7 @@ class RegistrationModelTests(TestCase):
                  'password': 'swordfish',
                  'email': 'alice@example.com'}
 
+    @skipIfCustomUser
     def test_profile_creation(self):
         """
         Creating a registration profile for a user populates the
@@ -42,6 +44,7 @@ class RegistrationModelTests(TestCase):
         self.assertEqual(unicode(profile),
                          "Registration information for alice")
 
+    @skipIfCustomUser
     def test_activation_email(self):
         """
         ``RegistrationProfile.send_activation_email`` sends an
@@ -54,6 +57,7 @@ class RegistrationModelTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].to, [self.user_info['email']])
 
+    @skipIfCustomUser
     def test_user_creation(self):
         """
         Creating a new user populates the correct data, and sets the
@@ -67,6 +71,7 @@ class RegistrationModelTests(TestCase):
         self.failUnless(new_user.check_password('swordfish'))
         self.failIf(new_user.is_active)
 
+    @skipIfCustomUser
     def test_user_creation_email(self):
         """
         By default, creating a new user sends an activation email.
@@ -76,6 +81,7 @@ class RegistrationModelTests(TestCase):
                                                                     **self.user_info)
         self.assertEqual(len(mail.outbox), 1)
 
+    @skipIfCustomUser
     def test_user_creation_no_email(self):
         """
         Passing ``send_email=False`` when creating a new user will not
@@ -87,6 +93,7 @@ class RegistrationModelTests(TestCase):
                                                                     **self.user_info)
         self.assertEqual(len(mail.outbox), 0)
 
+    @skipIfCustomUser
     def test_unexpired_account(self):
         """
         ``RegistrationProfile.activation_key_expired()`` is ``False``
@@ -98,6 +105,7 @@ class RegistrationModelTests(TestCase):
         profile = RegistrationProfile.objects.get(user=new_user)
         self.failIf(profile.activation_key_expired())
 
+    @skipIfCustomUser
     def test_expired_account(self):
         """
         ``RegistrationProfile.activation_key_expired()`` is ``True``
@@ -111,6 +119,7 @@ class RegistrationModelTests(TestCase):
         profile = RegistrationProfile.objects.get(user=new_user)
         self.failUnless(profile.activation_key_expired())
 
+    @skipIfCustomUser
     def test_valid_activation(self):
         """
         Activating a user within the permitted window makes the
@@ -129,6 +138,7 @@ class RegistrationModelTests(TestCase):
         profile = RegistrationProfile.objects.get(user=new_user)
         self.assertEqual(profile.activation_key, RegistrationProfile.ACTIVATED)
 
+    @skipIfCustomUser
     def test_expired_activation(self):
         """
         Attempting to activate outside the permitted window does not
@@ -160,6 +170,7 @@ class RegistrationModelTests(TestCase):
         """
         self.failIf(RegistrationProfile.objects.activate_user('foo'))
 
+    @skipIfCustomUser
     def test_activation_already_activated(self):
         """
         Attempting to re-activate an already-activated account fails.
@@ -184,6 +195,7 @@ class RegistrationModelTests(TestCase):
         invalid_key = sha_constructor('foo').hexdigest()
         self.failIf(RegistrationProfile.objects.activate_user(invalid_key))
 
+    @skipIfCustomUser
     def test_expired_user_deletion(self):
         """
         ``RegistrationProfile.objects.delete_expired_users()`` only
@@ -203,6 +215,7 @@ class RegistrationModelTests(TestCase):
         self.assertEqual(RegistrationProfile.objects.count(), 1)
         self.assertRaises(User.DoesNotExist, User.objects.get, username='bob')
 
+    @skipIfCustomUser
     def test_management_command(self):
         """
         The ``cleanupregistration`` management command properly
