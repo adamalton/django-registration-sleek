@@ -2,7 +2,6 @@ import datetime
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.contrib.sites.models import Site
 from django.contrib.auth.tests.utils import skipIfCustomUser
 from django.core import mail
 from django.core.urlresolvers import reverse
@@ -11,7 +10,7 @@ from django.test.utils import override_settings
 
 from registration.forms import RegistrationForm
 from registration.models import RegistrationProfile
-from registration.tests.utils import TESTS_TEMPLATE_DIRS
+from registration.tests.utils import TESTS_TEMPLATE_DIRS, UninstallSites
 
 
 @override_settings(TEMPLATE_DIRS=TESTS_TEMPLATE_DIRS)
@@ -93,6 +92,7 @@ class DefaultBackendViewTests(TestCase):
         self.assertEqual(RegistrationProfile.objects.count(), 1)
         self.assertEqual(len(mail.outbox), 1)
 
+    @UninstallSites()
     @skipIfCustomUser
     def test_registration_no_sites(self):
         """
@@ -101,7 +101,7 @@ class DefaultBackendViewTests(TestCase):
         be a ``RequestSite`` instance.
 
         """
-        Site._meta.installed = False
+        # Site._meta.installed = False
 
         resp = self.client.post(reverse('registration_register'),
                                 data={'username': 'bob',
@@ -120,7 +120,7 @@ class DefaultBackendViewTests(TestCase):
         self.assertEqual(RegistrationProfile.objects.count(), 1)
         self.assertEqual(len(mail.outbox), 1)
 
-        Site._meta.installed = True
+        # Site._meta.installed = True
 
     @skipIfCustomUser
     def test_registration_failure(self):
