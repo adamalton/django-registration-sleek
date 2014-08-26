@@ -74,6 +74,7 @@ class RegistrationManager(models.Manager):
                 return user
         return False
 
+    @transaction.atomic
     def create_inactive_user(self, username, email, password,
                              site, send_email=True):
         """
@@ -95,7 +96,6 @@ class RegistrationManager(models.Manager):
             registration_profile.send_activation_email(site)
 
         return new_user
-    create_inactive_user = transaction.commit_on_success(create_inactive_user)
 
     def create_profile(self, user):
         """
