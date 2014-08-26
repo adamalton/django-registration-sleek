@@ -75,8 +75,7 @@ class RegistrationManager(models.Manager):
         return False
 
     @transaction.atomic
-    def create_inactive_user(self, username, email, password,
-                             site, send_email=True):
+    def create_inactive_user(self, *user_args, **mixed_kwargs):
         """
         Create a new, inactive ``User``, generate a
         ``RegistrationProfile`` and email its activation key to the
@@ -86,7 +85,15 @@ class RegistrationManager(models.Manager):
         user. To disable this, pass ``send_email=False``.
 
         """
-        new_user = get_user_model().objects.create_user(username, email, password)
+        # TODO: this is really nasty.  Due to having to deal with a custom user, we accept
+        # *args and **kwargs, which are then passed down to create_user, but some of the kwargs
+        # are for other things.
+        # We should fix this properly, probably by moving this functionality out of the
+        # RegistrationManager.
+        site = mixed_kwargs.pop('site')
+        send_email = mixed_kwargs.pop('send_email', True)
+
+        new_user = get_user_model().objects.create_user(*user_args, **mixed_kwargs)
         new_user.is_active = False
         new_user.save()
 
