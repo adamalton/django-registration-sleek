@@ -99,7 +99,7 @@ class RegistrationView(BaseRegistrationView):
         """
         return getattr(settings, 'REGISTRATION_OPEN', True)
 
-    def get_success_url(self, request, user):
+    def get_success_url(self):
         """
         Return the name of the URL to redirect to after successful
         user registration.
@@ -127,5 +127,5 @@ class ActivationView(BaseActivationView):
                                         request=request)
         return activated_user
 
-    def get_success_url(self, request, user):
+    def get_success_url(self):
         return ('registration_activation_complete', (), {})

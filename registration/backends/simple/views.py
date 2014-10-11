@@ -41,5 +41,5 @@ class RegistrationView(BaseRegistrationView):
         """
         return getattr(settings, 'REGISTRATION_OPEN', True)
 
-    def get_success_url(self, request, user):
+    def get_success_url(self):
         return ('registration_complete', (), {})
